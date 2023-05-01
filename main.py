@@ -8,22 +8,19 @@
 import os
 import pandas as pd
 import docx
-import docx2txt
 import subprocess
 import re
+import docxpy
+from datetime import datetime
+#from docx import Document
+#from docx.opc.constants import RELATIONSHIP_TYPE as RT
+
 subprocess.call('dir', shell=True)
 
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-def readtxt(filename):
-    doc = docx.Document(filename)
-    fullText = []
-    for para in doc.paragraphs:
-        fullText.append(para.text)
-    return '\n'.join(fullText)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
@@ -40,8 +37,10 @@ if __name__ == '__main__':
                 document_list.append(os.path.join(filepath, name))
     file_path = document_list[0]
 
-    worddoc_to_text = docx2txt.process(file_path)
-    split_worddoc_text_arr = worddoc_to_text.split('\n\n')
+    docxpy_doc = docxpy.DOCReader(file_path)
+    docxpy_doc.process()  # process file
+    split_worddoc_text_arr = docxpy_doc.data['document'].strip('\n').split('\n\n')
+
     doc_title_text = split_worddoc_text_arr.pop(0)
     doc_date_text = split_worddoc_text_arr.pop(0)
     citations_arr = split_worddoc_text_arr
@@ -53,18 +52,28 @@ if __name__ == '__main__':
         citations_data_dict['author'].append(author)
         citations_data_dict['title'].append(title_text)
         print(author, title_text)
-    citations_data_dict['journal'] = []
     citations_data_dict['publish_date'] = []
-    citations_data_dict['volume_issue_pages'] = []
+    citations_data_dict['journal'] = []
+    #citations_data_dict['volume_issue_pages'] = []
     citations_data_dict['volume'] = []
     citations_data_dict['issue'] = []
     citations_data_dict['pages'] = []
+    citations_data_dict['pm_ids'] = []
+    citations_data_dict['links'] = []
 
+    pubmed_base_url = 'https://pubmed.ncbi.nlm.nih.gov/'
 
     doc = docx.Document(file_path)
     idx = 0
     for para in doc.paragraphs:
         if idx >= 2:
+            first_para_hyperlink_id = para.paragraph_format.element.xpath('./w:hyperlink')[0].attrib[
+                '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id']
+            link_url = para.part.rels[first_para_hyperlink_id].target_ref
+            pm_id = None
+            if link_url.startswith(pubmed_base_url):
+                pm_id = link_url.lstrip(pubmed_base_url).split('/')[0] \
+                    if link_url.lstrip(pubmed_base_url).split('/').__len__() > 0 else ''
             print(para.text)
             runs_len = para.runs.__len__()
             journal = ''
@@ -84,17 +93,30 @@ if __name__ == '__main__':
                     endedItalic = True
                     text_after_journal = para.runs[run_idx].text
                 run_idx += 1
-            citations_data_dict['journal'].append(journal)
+            # journal is defined now
             while run_idx < runs_len:
                 text_after_journal += para.runs[run_idx].text
                 run_idx += 1
             split_last_text_arr = text_after_journal.split(';')
             publish_date = split_last_text_arr[0] if split_last_text_arr.__len__() > 0 else ''
             publish_date = publish_date.strip('.').strip(' ')
-            citations_data_dict['publish_date'].append(publish_date)
+
+            pattern_year_month = re.compile("^([0-9]{4}) ([A-Za-z]+)$")
+            pattern_year_only = re.compile("^([0-9]{4})$")
+            is_date_year_month = bool(pattern_year_month.match(publish_date))
+            is_date_year_only = bool(pattern_year_only.match(publish_date))
+
+            publish_datetime_object = None
+            if is_date_year_month:
+                publish_datetime_object = datetime.strptime(publish_date, '%Y %b')
+            elif is_date_year_only:
+                publish_datetime_object = datetime.strptime(publish_date, '%Y')
+
+            publish_date_reformatted = publish_datetime_object.strftime('%Y-%m-%d %H:%M:%S') if publish_datetime_object is not None else ''
+            # publish_date_reformatted is defined now.
             volume_issue_pages = split_last_text_arr[1] if split_last_text_arr.__len__() > 1 else ''
             volume_issue_pages = volume_issue_pages.strip('.').strip(' ')
-            citations_data_dict['volume_issue_pages'].append(volume_issue_pages)
+            #citations_data_dict['volume_issue_pages'].append(volume_issue_pages)
             volume = ''
             issue = ''
             pages = ''
@@ -105,18 +127,26 @@ if __name__ == '__main__':
                 volume = m.group(1)
                 issue = m.group(2).strip().lstrip('(').rstrip(')')
                 pages = m.group(3).lstrip(':').strip()
+            citations_data_dict['publish_date'].append(publish_date_reformatted)
+            citations_data_dict['journal'].append(journal)
             citations_data_dict['volume'].append(volume)
             citations_data_dict['issue'].append(issue)
             citations_data_dict['pages'].append(pages)
-        idx += 1
+            citations_data_dict['pm_ids'].append(pm_id)
+            citations_data_dict['links'].append(link_url)
 
-    print(readtxt(file_path))
+        idx += 1
 
     citations_data_df = pd.DataFrame(citations_data_dict)
 
-    html = citations_data_df.to_html()
+    csv = citations_data_df.to_csv()
+    '''
     f = open('output.html', 'w+')
     f.write(html)
     print(html)
+    '''
+    f = open('output.csv', 'w+')
+    f.write(csv)
+
     print_hi('PyCharm')
 
