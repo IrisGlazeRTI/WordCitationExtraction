@@ -22,21 +22,9 @@ def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
     print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    # FILE PATH AND creating LIST of all documents
-    filepath = r"./input"
-    files = os.listdir(filepath)
-    document_list = []
-    cnames = ['p_id', 'p_name']
-    for name in files:
-        x = name
-        # For each file we find,we need to ensure it is a .docx file before adding it to our list
-        if os.path.splitext(os.path.join('/', name))[1] == ".docx":
-            if not name.startswith('~$'):
-                document_list.append(os.path.join(filepath, name))
-    file_path = document_list[0]
-
+def output_file(file_path=''):
+    input_file_name = file_path.split('/')[file_path.split('/').__len__() - 1] if file_path.split('/').__len__() > 0 else ''
+    output_file_path = './output/' + input_file_name.rstrip('xdoc')
     docxpy_doc = docxpy.DOCReader(file_path)
     docxpy_doc.process()  # process file
     split_worddoc_text_arr = docxpy_doc.data['document'].strip('\n').split('\n\n')
@@ -152,12 +140,32 @@ if __name__ == '__main__':
     csv = citations_data_df.to_csv()
     html = citations_data_df.to_html()
 
-    f = open('output.html', 'w+')
+    f = open(output_file_path + '.html', 'w+')
     f.write(html)
     print(html)
 
-    f = open('output.csv', 'w+')
+    f = open(output_file_path + '.csv', 'w+')
     f.write(csv)
 
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    # FILE PATH AND creating LIST of all documents
+    filepath = r"./input"
+    files = os.listdir(filepath)
+    document_list = []
+    cnames = ['p_id', 'p_name']
+    for name in files:
+        x = name
+        # For each file we find,we need to ensure it is a .docx file before adding it to our list
+        if os.path.splitext(os.path.join('/', name))[1] == ".docx":
+            if not name.startswith('~$'):
+                document_list.append(os.path.join(filepath, name))
+    file_path = document_list[0]
+    #output_file(file_path)
+
+    for document in document_list:
+        output_file(document)
+
     print_hi('PyCharm')
+
 
