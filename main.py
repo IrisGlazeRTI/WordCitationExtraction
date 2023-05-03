@@ -44,12 +44,14 @@ if __name__ == '__main__':
     doc_title_text = split_worddoc_text_arr.pop(0)
     doc_date_text = split_worddoc_text_arr.pop(0)
     citations_arr = split_worddoc_text_arr
-    citations_data_dict = {'author': [], 'title': []}
+    citations_data_dict = {'author': [], 'publications': [], 'title': []}
     for citation in citations_arr:
         author = citation.split('. (', 2)[0]
+        publications_year_1 = citation.split('. (', 2)[1].split(')')[0] if citation.split('. (', 2).__len__() >= 2 and citation.split('. (', 2)[1].split(')').__len__() > 0 else ''
         remaining_text = '(' + citation.split('. (', 2)[1]
         title_text = remaining_text.split('.')[1]
         citations_data_dict['author'].append(author)
+        citations_data_dict['publications'].append(publications_year_1)
         citations_data_dict['title'].append(title_text)
         print(author, title_text)
     citations_data_dict['publish_date'] = []
@@ -98,14 +100,22 @@ if __name__ == '__main__':
                 text_after_journal += para.runs[run_idx].text
                 run_idx += 1
             split_last_text_arr = text_after_journal.split(';')
-            publish_date = split_last_text_arr[0] if split_last_text_arr.__len__() > 0 else ''
-            publish_date = publish_date.strip('.').strip(' ')
-
+            publish_date = ''
             pattern_year_month = re.compile("^([0-9]{4}) ([A-Za-z]+)$")
             pattern_year_only = re.compile("^([0-9]{4})$")
+
+            if split_last_text_arr.__len__() > 0:
+                '''
+                x = re.compile("([0-9]{4}) ([A-Za-z]+)").match(split_last_text_arr[0])
+                z = split_last_text_arr[0][28:]
+                y = pattern_year_only.match(split_last_text_arr[0])
+                '''
+                publish_date = split_last_text_arr[0]
+                publish_date = publish_date.strip('.').strip(' ')
+                publish_date = publish_date[re.compile("([0-9]{4}) ?([A-Za-z]+)?").search(publish_date).regs[0][0]:re.compile("([0-9]{4}) ?([A-Za-z]+)?").search(publish_date).regs[0][1]]
+
             is_date_year_month = bool(pattern_year_month.match(publish_date))
             is_date_year_only = bool(pattern_year_only.match(publish_date))
-
             publish_datetime_object = None
             if is_date_year_month:
                 publish_datetime_object = datetime.strptime(publish_date, '%Y %b')
@@ -140,11 +150,12 @@ if __name__ == '__main__':
     citations_data_df = pd.DataFrame(citations_data_dict)
 
     csv = citations_data_df.to_csv()
-    '''
+    html = citations_data_df.to_html()
+
     f = open('output.html', 'w+')
     f.write(html)
     print(html)
-    '''
+
     f = open('output.csv', 'w+')
     f.write(csv)
 
