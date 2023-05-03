@@ -43,13 +43,32 @@ def output_file(file_path=''):
         citations_data_dict['title'].append(title_text)
         print(author, title_text)
     citations_data_dict['publish_date'] = []
+    # blank col
+    citations_data_dict['description'] = []
     citations_data_dict['journal'] = []
     #citations_data_dict['volume_issue_pages'] = []
     citations_data_dict['volume'] = []
     citations_data_dict['issue'] = []
     citations_data_dict['pages'] = []
+    # blank col
+    citations_data_dict['doi'] = []
     citations_data_dict['pm_ids'] = []
     citations_data_dict['links'] = []
+    #blank cols
+    citations_data_dict['epub'] = []
+    citations_data_dict['created'] = []
+    citations_data_dict['updated'] = []
+    citations_data_dict['pub_type'] = []
+    citations_data_dict['date_year'] = []
+    citations_data_dict['protocol_ids'] = []
+    citations_data_dict['study_name'] = []
+    citations_data_dict['study_acronym'] = []
+    citations_data_dict['study_type'] = []
+    citations_data_dict['disease_phenotype'] = []
+    citations_data_dict['primary_research_focus'] = []
+    citations_data_dict['funding_source'] = []
+    citations_data_dict['award_num'] = []
+    citations_data_dict['foa'] = []
 
     pubmed_base_url = 'https://pubmed.ncbi.nlm.nih.gov/'
 
@@ -132,6 +151,23 @@ def output_file(file_path=''):
             citations_data_dict['pages'].append(pages)
             citations_data_dict['pm_ids'].append(pm_id)
             citations_data_dict['links'].append(link_url)
+            # blank cols
+            citations_data_dict['description'].append('')
+            citations_data_dict['doi'].append('')
+            citations_data_dict['epub'].append('')
+            citations_data_dict['created'].append('')
+            citations_data_dict['updated'].append('')
+            citations_data_dict['pub_type'].append('')
+            citations_data_dict['date_year'].append('')
+            citations_data_dict['protocol_ids'].append('')
+            citations_data_dict['study_name'].append('')
+            citations_data_dict['study_acronym'].append('')
+            citations_data_dict['study_type'].append('')
+            citations_data_dict['disease_phenotype'].append('')
+            citations_data_dict['primary_research_focus'].append('')
+            citations_data_dict['funding_source'].append('')
+            citations_data_dict['award_num'].append('')
+            citations_data_dict['foa'].append('')
 
         idx += 1
 
@@ -160,8 +196,6 @@ if __name__ == '__main__':
         if os.path.splitext(os.path.join('/', name))[1] == ".docx":
             if not name.startswith('~$'):
                 document_list.append(os.path.join(filepath, name))
-    file_path = document_list[0]
-    #output_file(file_path)
 
     for document in document_list:
         output_file(document)
