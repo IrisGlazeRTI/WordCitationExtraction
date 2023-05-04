@@ -18,13 +18,9 @@ from datetime import datetime
 subprocess.call('dir', shell=True)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
 def output_file(file_path=''):
     input_file_name = file_path.split('/')[file_path.split('/').__len__() - 1] if file_path.split('/').__len__() > 0 else ''
-    output_file_path = './output/' + input_file_name.rstrip('xdoc')
+    output_file_path = './output/' + input_file_name.rstrip('.xdoc')
     docxpy_doc = docxpy.DOCReader(file_path)
     docxpy_doc.process()  # process file
     split_worddoc_text_arr = docxpy_doc.data['document'].strip('\n').split('\n\n')
@@ -157,7 +153,7 @@ def output_file(file_path=''):
             citations_data_dict['epub'].append('')
             citations_data_dict['created'].append('')
             citations_data_dict['updated'].append('')
-            citations_data_dict['pub_type'].append('')
+            citations_data_dict['pub_type'].append('citing')
             citations_data_dict['date_year'].append('')
             citations_data_dict['protocol_ids'].append('')
             citations_data_dict['study_name'].append('')
@@ -200,6 +196,5 @@ if __name__ == '__main__':
     for document in document_list:
         output_file(document)
 
-    print_hi('PyCharm')
 
 
