@@ -12,6 +12,7 @@ import subprocess
 import re
 import docxpy
 from datetime import datetime
+import unicodecsv as csv
 #from docx import Document
 #from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
@@ -20,7 +21,10 @@ subprocess.call('dir', shell=True)
 
 def output_file(file_path=''):
     input_file_name = file_path.split('/')[file_path.split('/').__len__() - 1] if file_path.split('/').__len__() > 0 else ''
-    output_file_path = './output/' + input_file_name.rstrip('.xdoc')
+    output_directory_name = 'output'
+    if not os.path.exists('./' + output_directory_name):
+        os.makedirs('./' + output_directory_name)
+    output_file_path = './' + output_directory_name + '/' + input_file_name.rstrip('.xdoc')
     docxpy_doc = docxpy.DOCReader(file_path)
     docxpy_doc.process()  # process file
     split_worddoc_text_arr = docxpy_doc.data['document'].strip('\n').split('\n\n')
@@ -172,11 +176,11 @@ def output_file(file_path=''):
     csv = citations_data_df.to_csv()
     html = citations_data_df.to_html()
 
-    f = open(output_file_path + '.html', 'w+')
+    f = open(output_file_path + '.html', 'w+', encoding='utf-8')
     f.write(html)
     print(html)
 
-    f = open(output_file_path + '.csv', 'w+')
+    f = open(output_file_path + '.csv', 'w+', encoding='utf-8')
     f.write(csv)
 
 # Press the green button in the gutter to run the script.
